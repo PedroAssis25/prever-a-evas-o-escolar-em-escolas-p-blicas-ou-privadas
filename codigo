@@ -1,0 +1,56 @@
+# Importando bibliotecas necessárias
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+# Gerando um conjunto de dados fictício (substitua pelo seu dataset, se necessário)
+np.random.seed(42)
+n = 1000
+data = {
+    "ID_Estudante": range(1, n + 1),
+    "Renda_Familiar": np.random.randint(500, 5000, size=n),
+    "Presencas": np.random.uniform(50, 100, size=n),
+    "Nota_Media": np.random.uniform(0, 10, size=n),
+    "Regiao": np.random.choice(["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"], size=n),
+}
+prob_evasao = (
+    (data["Renda_Familiar"] < 1500).astype(int) +
+    (data["Presencas"] < 70).astype(int) +
+    (data["Nota_Media"] < 5).astype(int)
+) / 3
+data["Evasao"] = np.random.binomial(1, prob_evasao)
+df = pd.DataFrame(data)
+
+# Separando features e variável alvo
+X = df[["Renda_Familiar", "Presencas", "Nota_Media"]]
+y = df["Evasao"]
+
+# Dividindo em conjunto de treino e teste
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Treinando o modelo Random Forest
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Importância das variáveis
+feature_importances = model.feature_importances_
+
+# Criando DataFrame para visualização
+importance_df = pd.DataFrame({
+    "Feature": ["Renda_Familiar", "Presencas", "Nota_Media"],
+    "Importance": feature_importances
+}).sort_values(by="Importance", ascending=False)
+
+# Plotando as importâncias
+plt.figure(figsize=(8, 6))
+sns.barplot(x="Importance", y="Feature", data=importance_df, palette="coolwarm")
+plt.title("Importância das Variáveis no Modelo", fontsize=14)
+plt.xlabel("Importância")
+plt.ylabel("Variável")
+plt.show()
+
+print(importance_df)
+
